@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset } from "@/components/ui/sidebar";
 import { Search, Command } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -41,8 +41,6 @@ const Examples = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
-  const [selectedResultIndex, setSelectedResultIndex] = useState(0);
-  const searchInputRef = useRef(null);
 
   const handleSectionClick = (section) => {
     setActiveSection(section);
@@ -51,8 +49,8 @@ const Examples = () => {
 
   const handleItemClick = (item) => {
     setActiveItem(item);
-    // Update URL with the item ID (without hash)
-    window.history.pushState({}, "", `/examples/${item.id}`);
+    // Update URL with the item ID
+    window.history.pushState({}, "", `/examples#${item.id}`);
   };
 
   // Handle search functionality
@@ -61,7 +59,6 @@ const Examples = () => {
     
     if (query.trim() === "") {
       setSearchResults([]);
-      setSelectedResultIndex(0);
       return;
     }
     
@@ -82,47 +79,10 @@ const Examples = () => {
     });
     
     setSearchResults(results);
-    setSelectedResultIndex(0); // Reset selection when results change
-  };
-
-  // Handle keyboard navigation in search results
-  const handleSearchKeyDown = (e) => {
-    if (searchResults.length === 0) return;
-
-    // Arrow down
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setSelectedResultIndex(prev => 
-        prev < searchResults.length - 1 ? prev + 1 : prev
-      );
-    }
-    
-    // Arrow up
-    if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setSelectedResultIndex(prev => prev > 0 ? prev - 1 : 0);
-    }
-    
-    // Enter key - select the highlighted result
-    if (e.key === 'Enter' && selectedResultIndex >= 0 && selectedResultIndex < searchResults.length) {
-      e.preventDefault();
-      const result = searchResults[selectedResultIndex];
-      const section = exampleSections.find(s => s.title === result.section);
-      if (section) {
-        handleSectionClick(section);
-        handleItemClick(result.item);
-        setIsSearchOpen(false);
-      }
-    }
-    
-    // Escape key - close the search dialog
-    if (e.key === 'Escape') {
-      setIsSearchOpen(false);
-    }
   };
 
   // Handle keyboard shortcut for search
-  useEffect(() => {
+  React.useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
@@ -134,22 +94,13 @@ const Examples = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Focus search input when dialog opens
-  useEffect(() => {
-    if (isSearchOpen && searchInputRef.current) {
-      setTimeout(() => {
-        searchInputRef.current.focus();
-      }, 100);
-    }
-  }, [isSearchOpen]);
-
-  // Handle URL path on initial load
-  useEffect(() => {
-    const path = window.location.pathname.replace(/^\/examples\//, ""); // Remove leading /examples/
-    if (path) {
+  // Handle URL hash on initial load
+  React.useEffect(() => {
+    const hash = window.location.hash.replace("#", "");
+    if (hash) {
       // Find the item with the matching ID
       for (const section of exampleSections) {
-        const item = section.items.find(item => item.id === path);
+        const item = section.items.find(item => item.id === hash);
         if (item) {
           setActiveSection(section);
           setActiveItem(item);
@@ -213,25 +164,24 @@ const Examples = () => {
         <SidebarInset>
           <DocHeader activeTab="examples" />
           
-          <main className="flex-1 overflow-auto p-6 sm:p-10">
+          <main className="flex-1 overflow-auto p-4 sm:p-6">
             <DocContent>
-              <div className="max-w-5xl mx-auto">
-                <DocHeading level={1} id={activeItem.id}>{activeItem.title}</DocHeading>
-                <DocParagraph>{activeItem.description}</DocParagraph>
-                
-                {activeItem.id === "auth-example" && (
-                  <>
-                    <DocAlert type="info">
-                      This example demonstrates how to authenticate with our API using different methods.
-                    </DocAlert>
-                    
-                    <DocHeading level={2} id="api-key-auth">API Key Authentication</DocHeading>
-                    <DocParagraph>
-                      The simplest way to authenticate is using an API key. Here's an example:
-                    </DocParagraph>
-                    
-                    <DocCode 
-                      code={`import { Client } from '@platform/sdk';
+              <DocHeading level={1} id={activeItem.id}>{activeItem.title}</DocHeading>
+              <DocParagraph>{activeItem.description}</DocParagraph>
+              
+              {activeItem.id === "auth-example" && (
+                <>
+                  <DocAlert type="info">
+                    This example demonstrates how to authenticate with our API using different methods.
+                  </DocAlert>
+                  
+                  <DocHeading level={2} id="api-key-auth">API Key Authentication</DocHeading>
+                  <DocParagraph>
+                    The simplest way to authenticate is using an API key. Here's an example:
+                  </DocParagraph>
+                  
+                  <DocCode 
+                    code={`import { Client } from '@platform/sdk';
 
 // Initialize the client with an API key
 const client = new Client({
@@ -240,16 +190,16 @@ const client = new Client({
 
 // Make an authenticated request
 const users = await client.users.list();`} 
-                      language="javascript" 
-                    />
-                    
-                    <DocHeading level={2} id="oauth-auth">OAuth Authentication</DocHeading>
-                    <DocParagraph>
-                      For more secure applications, you can use OAuth:
-                    </DocParagraph>
-                    
-                    <DocCode 
-                      code={`import { OAuthClient } from '@platform/sdk';
+                    language="javascript" 
+                  />
+                  
+                  <DocHeading level={2} id="oauth-auth">OAuth Authentication</DocHeading>
+                  <DocParagraph>
+                    For more secure applications, you can use OAuth:
+                  </DocParagraph>
+                  
+                  <DocCode 
+                    code={`import { OAuthClient } from '@platform/sdk';
 
 // Initialize the OAuth client
 const client = new OAuthClient({
@@ -282,34 +232,34 @@ const handleCallback = async (code) => {
   // Make authenticated requests
   const users = await authenticatedClient.users.list();
 };`} 
-                      language="javascript" 
-                    />
-                  </>
-                )}
-                
-                {activeItem.id === "react-example" && (
-                  <>
-                    <DocAlert type="success">
-                      Our SDK integrates seamlessly with React applications.
-                    </DocAlert>
-                    
-                    <DocHeading level={2} id="react-setup">Setting up with React</DocHeading>
-                    <DocParagraph>
-                      First, install our SDK and React hooks package:
-                    </DocParagraph>
-                    
-                    <DocCode 
-                      code={`npm install @platform/sdk @platform/react-hooks`} 
-                      language="bash" 
-                    />
-                    
-                    <DocHeading level={2} id="react-provider">Set up the Provider</DocHeading>
-                    <DocParagraph>
-                      Wrap your application with our provider:
-                    </DocParagraph>
-                    
-                    <DocCode 
-                      code={`import { PlatformProvider } from '@platform/react-hooks';
+                    language="javascript" 
+                  />
+                </>
+              )}
+              
+              {activeItem.id === "react-example" && (
+                <>
+                  <DocAlert type="success">
+                    Our SDK integrates seamlessly with React applications.
+                  </DocAlert>
+                  
+                  <DocHeading level={2} id="react-setup">Setting up with React</DocHeading>
+                  <DocParagraph>
+                    First, install our SDK and React hooks package:
+                  </DocParagraph>
+                  
+                  <DocCode 
+                    code={`npm install @platform/sdk @platform/react-hooks`} 
+                    language="bash" 
+                  />
+                  
+                  <DocHeading level={2} id="react-provider">Set up the Provider</DocHeading>
+                  <DocParagraph>
+                    Wrap your application with our provider:
+                  </DocParagraph>
+                  
+                  <DocCode 
+                    code={`import { PlatformProvider } from '@platform/react-hooks';
 import { createClient } from '@platform/sdk';
 
 function App() {
@@ -323,16 +273,16 @@ function App() {
     </PlatformProvider>
   );
 }`} 
-                      language="jsx" 
-                    />
-                    
-                    <DocHeading level={2} id="react-hooks">Using the Hooks</DocHeading>
-                    <DocParagraph>
-                      Now you can use our hooks in your components:
-                    </DocParagraph>
-                    
-                    <DocCode 
-                      code={`import { useUsers, useUser } from '@platform/react-hooks';
+                    language="jsx" 
+                  />
+                  
+                  <DocHeading level={2} id="react-hooks">Using the Hooks</DocHeading>
+                  <DocParagraph>
+                    Now you can use our hooks in your components:
+                  </DocParagraph>
+                  
+                  <DocCode 
+                    code={`import { useUsers, useUser } from '@platform/react-hooks';
 
 function UsersList() {
   const { data: users, isLoading, error } = useUsers();
@@ -361,27 +311,26 @@ function UserProfile({ userId }) {
     </div>
   );
 }`} 
-                      language="jsx" 
-                    />
+                    language="jsx" 
+                  />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-8">
+                    <DocCard>
+                      <DocHeading level={3}>Automatic Caching</DocHeading>
+                      <DocParagraph>
+                        Our React hooks automatically cache data to minimize API calls.
+                      </DocParagraph>
+                    </DocCard>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-8">
-                      <DocCard>
-                        <DocHeading level={3}>Automatic Caching</DocHeading>
-                        <DocParagraph>
-                          Our React hooks automatically cache data to minimize API calls.
-                        </DocParagraph>
-                      </DocCard>
-                      
-                      <DocCard>
-                        <DocHeading level={3}>Real-time Updates</DocHeading>
-                        <DocParagraph>
-                          Subscribe to real-time updates with our useSubscription hook.
-                        </DocParagraph>
-                      </DocCard>
-                    </div>
-                  </>
-                )}
-              </div>
+                    <DocCard>
+                      <DocHeading level={3}>Real-time Updates</DocHeading>
+                      <DocParagraph>
+                        Subscribe to real-time updates with our useSubscription hook.
+                      </DocParagraph>
+                    </DocCard>
+                  </div>
+                </>
+              )}
             </DocContent>
           </main>
         </SidebarInset>
@@ -398,11 +347,9 @@ function UserProfile({ userId }) {
           </DialogHeader>
           <div className="py-4">
             <Input
-              ref={searchInputRef}
               placeholder="Search for examples, code snippets, and more..."
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
-              onKeyDown={handleSearchKeyDown}
               className="mb-4"
               autoFocus
             />
@@ -412,7 +359,7 @@ function UserProfile({ userId }) {
                 {searchResults.map((result, index) => (
                   <div 
                     key={index} 
-                    className={`p-2 rounded-md cursor-pointer ${index === selectedResultIndex ? 'bg-gray-200' : 'hover:bg-gray-100'}`}
+                    className="p-2 hover:bg-gray-100 rounded-md cursor-pointer"
                     onClick={() => {
                       // Find the section
                       const section = exampleSections.find(s => s.title === result.section);
@@ -435,17 +382,6 @@ function UserProfile({ userId }) {
             ) : (
               <div className="text-center py-8 text-gray-500">
                 Type to start searching...
-                <div className="mt-2 text-xs text-gray-400">
-                  <div className="flex items-center justify-center gap-2 mb-1">
-                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded-md">↑</kbd>
-                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded-md">↓</kbd>
-                    <span>to navigate</span>
-                  </div>
-                  <div className="flex items-center justify-center gap-2">
-                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded-md">Enter</kbd>
-                    <span>to select</span>
-                  </div>
-                </div>
               </div>
             )}
           </div>
