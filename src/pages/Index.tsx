@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset } from "@/components/ui/sidebar";
 import { Search, Command } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -91,7 +91,7 @@ const Index = () => {
   };
 
   // Handle keyboard shortcut for search
-  React.useEffect(() => {
+  useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
@@ -104,7 +104,7 @@ const Index = () => {
   }, []);
 
   // Handle URL hash on initial load
-  React.useEffect(() => {
+  useEffect(() => {
     const hash = window.location.hash.replace("#", "");
     if (hash) {
       // Find the item with the matching ID
