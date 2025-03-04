@@ -1,52 +1,43 @@
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset } from "@/components/ui/sidebar";
 import { Search, Command } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import DocHeader from "@/components/DocHeader";
 import DocContent, { DocHeading, DocParagraph, DocAlert, DocCode, DocCard } from "@/components/DocContent";
-import { Link } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-// Documentation sections
-const sections = [
+// Examples sections
+const exampleSections = [
   {
-    title: "Getting Started",
+    title: "Basic Examples",
     items: [
-      { title: "Introduction", id: "introduction", content: "Welcome to our documentation! This guide will help you get started with our platform." },
-      { title: "Quick Start", id: "quick-start", content: "Follow these steps to quickly set up your first project." },
-      { title: "Installation", id: "installation", content: "Learn how to install our software on different platforms." }
+      { title: "Authentication", id: "auth-example", description: "Learn how to authenticate with our API" },
+      { title: "User Management", id: "user-example", description: "Examples for managing users" },
+      { title: "Data Fetching", id: "data-example", description: "How to fetch and display data" }
     ]
   },
   {
-    title: "Core Concepts",
+    title: "Advanced Examples",
     items: [
-      { title: "Architecture", id: "architecture", content: "Understand the architecture behind our platform." },
-      { title: "Data Model", id: "data-model", content: "Learn about our data model and how it's structured." },
-      { title: "Authentication", id: "authentication", content: "Implement authentication in your applications." }
+      { title: "Real-time Updates", id: "realtime-example", description: "Implementing real-time features" },
+      { title: "File Uploads", id: "upload-example", description: "Handling file uploads" },
+      { title: "Webhooks", id: "webhook-example", description: "Setting up and using webhooks" }
     ]
   },
   {
-    title: "Guides",
+    title: "Integrations",
     items: [
-      { title: "User Management", id: "user-management", content: "Learn how to manage users in your application." },
-      { title: "API Integration", id: "api-integration", content: "Integrate with our API for extended functionality." },
-      { title: "Deployment", id: "deployment", content: "Deploy your application to production environments." }
-    ]
-  },
-  {
-    title: "API Reference",
-    items: [
-      { title: "Endpoints", id: "endpoints", content: "Explore all available API endpoints." },
-      { title: "Parameters", id: "parameters", content: "Learn about the parameters for each endpoint." },
-      { title: "Responses", id: "responses", content: "Understand the structure of API responses." }
+      { title: "React Integration", id: "react-example", description: "Using our SDK with React" },
+      { title: "Vue Integration", id: "vue-example", description: "Using our SDK with Vue" },
+      { title: "Angular Integration", id: "angular-example", description: "Using our SDK with Angular" }
     ]
   }
 ];
 
-const Index = () => {
-  const [activeSection, setActiveSection] = useState(sections[0]);
-  const [activeItem, setActiveItem] = useState(sections[0].items[0]);
+const Examples = () => {
+  const [activeSection, setActiveSection] = useState(exampleSections[0]);
+  const [activeItem, setActiveItem] = useState(exampleSections[0].items[0]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
@@ -59,7 +50,7 @@ const Index = () => {
   const handleItemClick = (item) => {
     setActiveItem(item);
     // Update URL with the item ID
-    window.history.pushState({}, "", `/#${item.id}`);
+    window.history.pushState({}, "", `/examples#${item.id}`);
   };
 
   // Handle search functionality
@@ -73,11 +64,11 @@ const Index = () => {
     
     // Search through all sections and items
     const results = [];
-    sections.forEach(section => {
+    exampleSections.forEach(section => {
       section.items.forEach(item => {
         if (
           item.title.toLowerCase().includes(query.toLowerCase()) ||
-          item.content.toLowerCase().includes(query.toLowerCase())
+          item.description.toLowerCase().includes(query.toLowerCase())
         ) {
           results.push({
             section: section.title,
@@ -108,7 +99,7 @@ const Index = () => {
     const hash = window.location.hash.replace("#", "");
     if (hash) {
       // Find the item with the matching ID
-      for (const section of sections) {
+      for (const section of exampleSections) {
         const item = section.items.find(item => item.id === hash);
         if (item) {
           setActiveSection(section);
@@ -129,13 +120,13 @@ const Index = () => {
                 <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center">
                   <span className="text-primary-foreground font-bold">D</span>
                 </div>
-                <span className="font-bold text-lg">Docs</span>
+                <span className="font-bold text-lg">Examples</span>
               </div>
             </div>
             <div className="relative">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search documentation..."
+                placeholder="Search examples..."
                 className="pl-8"
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
@@ -147,7 +138,7 @@ const Index = () => {
             </div>
           </SidebarHeader>
           <SidebarContent className="px-2">
-            {sections.map((section) => (
+            {exampleSections.map((section) => (
               <div key={section.title} className="mb-4">
                 <h3 className="px-4 text-sm font-medium text-gray-500 mb-1">{section.title}</h3>
                 <SidebarMenu>
@@ -171,142 +162,173 @@ const Index = () => {
         </Sidebar>
 
         <SidebarInset>
-          <DocHeader activeTab="docs" />
+          <DocHeader activeTab="examples" />
           
           <main className="flex-1 overflow-auto p-4 sm:p-6">
             <DocContent>
               <DocHeading level={1} id={activeItem.id}>{activeItem.title}</DocHeading>
-              <DocParagraph>{activeItem.content}</DocParagraph>
+              <DocParagraph>{activeItem.description}</DocParagraph>
               
-              {activeItem.id === "introduction" && (
+              {activeItem.id === "auth-example" && (
                 <>
                   <DocAlert type="info">
-                    This documentation will help you understand how to use our platform effectively.
+                    This example demonstrates how to authenticate with our API using different methods.
                   </DocAlert>
                   
-                  <DocHeading level={2} id="what-is-it">What is our platform?</DocHeading>
+                  <DocHeading level={2} id="api-key-auth">API Key Authentication</DocHeading>
                   <DocParagraph>
-                    Our platform is a comprehensive solution for building modern applications.
-                    It provides tools and services to help developers create, deploy, and manage
-                    applications with ease.
-                  </DocParagraph>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-8">
-                    <DocCard>
-                      <DocHeading level={3}>Easy to use</DocHeading>
-                      <DocParagraph>
-                        Our intuitive interface makes it simple to get started and build your first application.
-                      </DocParagraph>
-                    </DocCard>
-                    
-                    <DocCard>
-                      <DocHeading level={3}>Powerful features</DocHeading>
-                      <DocParagraph>
-                        Access advanced capabilities through our comprehensive API and integrations.
-                      </DocParagraph>
-                    </DocCard>
-                    
-                    <DocCard>
-                      <DocHeading level={3}>Scalable</DocHeading>
-                      <DocParagraph>
-                        Built to grow with your needs, from small projects to enterprise applications.
-                      </DocParagraph>
-                    </DocCard>
-                    
-                    <DocCard>
-                      <DocHeading level={3}>Secure</DocHeading>
-                      <DocParagraph>
-                        Enterprise-grade security to protect your data and applications.
-                      </DocParagraph>
-                    </DocCard>
-                  </div>
-                  
-                  <DocHeading level={2} id="getting-started">Getting Started</DocHeading>
-                  <DocParagraph>
-                    To get started with our platform, you'll need to:
-                  </DocParagraph>
-                  
-                  <ol className="list-decimal pl-6 mb-6 space-y-2 text-gray-700">
-                    <li>Create an account on our platform</li>
-                    <li>Set up your first project</li>
-                    <li>Install the necessary dependencies</li>
-                    <li>Start building your application</li>
-                  </ol>
-                  
-                  <DocHeading level={2} id="installation">Installation</DocHeading>
-                  <DocParagraph>
-                    You can install our SDK using npm or yarn:
-                  </DocParagraph>
-                  
-                  <DocCode code="npm install @platform/sdk" language="bash" />
-                  <DocCode code="yarn add @platform/sdk" language="bash" />
-                  
-                  <DocHeading level={2} id="usage">Basic Usage</DocHeading>
-                  <DocParagraph>
-                    Here's a simple example of how to use our SDK:
+                    The simplest way to authenticate is using an API key. Here's an example:
                   </DocParagraph>
                   
                   <DocCode 
                     code={`import { Client } from '@platform/sdk';
 
-// Initialize the client
+// Initialize the client with an API key
 const client = new Client({
   apiKey: 'your-api-key'
 });
 
-// Use the client to interact with our API
-async function getUsers() {
-  const users = await client.users.list();
-  console.log(users);
-}
+// Make an authenticated request
+const users = await client.users.list();`} 
+                    language="javascript" 
+                  />
+                  
+                  <DocHeading level={2} id="oauth-auth">OAuth Authentication</DocHeading>
+                  <DocParagraph>
+                    For more secure applications, you can use OAuth:
+                  </DocParagraph>
+                  
+                  <DocCode 
+                    code={`import { OAuthClient } from '@platform/sdk';
 
-getUsers();`} 
+// Initialize the OAuth client
+const client = new OAuthClient({
+  clientId: 'your-client-id',
+  clientSecret: 'your-client-secret',
+  redirectUri: 'https://your-app.com/callback'
+});
+
+// Generate the authorization URL
+const authUrl = client.getAuthorizationUrl({
+  scope: ['read', 'write']
+});
+
+// Redirect the user to the authorization URL
+window.location.href = authUrl;
+
+// In your callback handler:
+const handleCallback = async (code) => {
+  // Exchange the code for tokens
+  const tokens = await client.getTokensFromCode(code);
+  
+  // Initialize an authenticated client
+  const authenticatedClient = new OAuthClient({
+    clientId: 'your-client-id',
+    clientSecret: 'your-client-secret',
+    accessToken: tokens.accessToken,
+    refreshToken: tokens.refreshToken
+  });
+  
+  // Make authenticated requests
+  const users = await authenticatedClient.users.list();
+};`} 
                     language="javascript" 
                   />
                 </>
               )}
               
-              {activeItem.id === "quick-start" && (
+              {activeItem.id === "react-example" && (
                 <>
                   <DocAlert type="success">
-                    Follow this quick start guide to get up and running in minutes!
+                    Our SDK integrates seamlessly with React applications.
                   </DocAlert>
                   
-                  <DocHeading level={2} id="prerequisites">Prerequisites</DocHeading>
+                  <DocHeading level={2} id="react-setup">Setting up with React</DocHeading>
                   <DocParagraph>
-                    Before you begin, make sure you have the following installed:
-                  </DocParagraph>
-                  
-                  <ul className="list-disc pl-6 mb-6 space-y-2 text-gray-700">
-                    <li>Node.js (version 14 or higher)</li>
-                    <li>npm or yarn</li>
-                    <li>A code editor of your choice</li>
-                  </ul>
-                  
-                  <DocHeading level={2} id="create-project">Create a new project</DocHeading>
-                  <DocParagraph>
-                    Run the following command to create a new project:
+                    First, install our SDK and React hooks package:
                   </DocParagraph>
                   
                   <DocCode 
-                    code="npx create-platform-app my-awesome-app" 
+                    code={`npm install @platform/sdk @platform/react-hooks`} 
                     language="bash" 
                   />
                   
-                  <DocHeading level={2} id="start-dev">Start the development server</DocHeading>
+                  <DocHeading level={2} id="react-provider">Set up the Provider</DocHeading>
                   <DocParagraph>
-                    Navigate to your project directory and start the development server:
+                    Wrap your application with our provider:
                   </DocParagraph>
                   
                   <DocCode 
-                    code={`cd my-awesome-app
-npm run dev`} 
-                    language="bash" 
+                    code={`import { PlatformProvider } from '@platform/react-hooks';
+import { createClient } from '@platform/sdk';
+
+function App() {
+  const client = createClient({
+    apiKey: 'your-api-key'
+  });
+
+  return (
+    <PlatformProvider client={client}>
+      <YourApp />
+    </PlatformProvider>
+  );
+}`} 
+                    language="jsx" 
                   />
                   
+                  <DocHeading level={2} id="react-hooks">Using the Hooks</DocHeading>
                   <DocParagraph>
-                    Your application should now be running at <code className="bg-gray-100 px-1 py-0.5 rounded">http://localhost:3000</code>.
+                    Now you can use our hooks in your components:
                   </DocParagraph>
+                  
+                  <DocCode 
+                    code={`import { useUsers, useUser } from '@platform/react-hooks';
+
+function UsersList() {
+  const { data: users, isLoading, error } = useUsers();
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  return (
+    <ul>
+      {users.map(user => (
+        <li key={user.id}>{user.name}</li>
+      ))}
+    </ul>
+  );
+}
+
+function UserProfile({ userId }) {
+  const { data: user, isLoading } = useUser(userId);
+
+  if (isLoading) return <div>Loading...</div>;
+
+  return (
+    <div>
+      <h1>{user.name}</h1>
+      <p>Email: {user.email}</p>
+    </div>
+  );
+}`} 
+                    language="jsx" 
+                  />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-8">
+                    <DocCard>
+                      <DocHeading level={3}>Automatic Caching</DocHeading>
+                      <DocParagraph>
+                        Our React hooks automatically cache data to minimize API calls.
+                      </DocParagraph>
+                    </DocCard>
+                    
+                    <DocCard>
+                      <DocHeading level={3}>Real-time Updates</DocHeading>
+                      <DocParagraph>
+                        Subscribe to real-time updates with our useSubscription hook.
+                      </DocParagraph>
+                    </DocCard>
+                  </div>
                 </>
               )}
             </DocContent>
@@ -320,12 +342,12 @@ npm run dev`}
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Command className="h-5 w-5" />
-              Search Documentation
+              Search Examples
             </DialogTitle>
           </DialogHeader>
           <div className="py-4">
             <Input
-              placeholder="Search for topics, guides, and more..."
+              placeholder="Search for examples, code snippets, and more..."
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
               className="mb-4"
@@ -340,7 +362,7 @@ npm run dev`}
                     className="p-2 hover:bg-gray-100 rounded-md cursor-pointer"
                     onClick={() => {
                       // Find the section
-                      const section = sections.find(s => s.title === result.section);
+                      const section = exampleSections.find(s => s.title === result.section);
                       if (section) {
                         handleSectionClick(section);
                         handleItemClick(result.item);
@@ -369,4 +391,4 @@ npm run dev`}
   );
 };
 
-export default Index;
+export default Examples;
