@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset } from "@/components/ui/sidebar";
 import { Search, Command } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -50,6 +50,8 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
+  const [selectedResultIndex, setSelectedResultIndex] = useState(0);
+  const searchInputRef = useRef(null);
 
   const handleSectionClick = (section) => {
     setActiveSection(section);
@@ -58,8 +60,8 @@ const Index = () => {
 
   const handleItemClick = (item) => {
     setActiveItem(item);
-    // Update URL with the item ID
-    window.history.pushState({}, "", `/#${item.id}`);
+    // Update URL with the item ID (without hash)
+    window.history.pushState({}, "", `/${item.id}`);
   };
 
   // Handle search functionality
@@ -68,6 +70,7 @@ const Index = () => {
     
     if (query.trim() === "") {
       setSearchResults([]);
+      setSelectedResultIndex(0);
       return;
     }
     
@@ -88,10 +91,47 @@ const Index = () => {
     });
     
     setSearchResults(results);
+    setSelectedResultIndex(0); // Reset selection when results change
+  };
+
+  // Handle keyboard navigation in search results
+  const handleSearchKeyDown = (e) => {
+    if (searchResults.length === 0) return;
+
+    // Arrow down
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedResultIndex(prev => 
+        prev < searchResults.length - 1 ? prev + 1 : prev
+      );
+    }
+    
+    // Arrow up
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedResultIndex(prev => prev > 0 ? prev - 1 : 0);
+    }
+    
+    // Enter key - select the highlighted result
+    if (e.key === 'Enter' && selectedResultIndex >= 0 && selectedResultIndex < searchResults.length) {
+      e.preventDefault();
+      const result = searchResults[selectedResultIndex];
+      const section = sections.find(s => s.title === result.section);
+      if (section) {
+        handleSectionClick(section);
+        handleItemClick(result.item);
+        setIsSearchOpen(false);
+      }
+    }
+    
+    // Escape key - close the search dialog
+    if (e.key === 'Escape') {
+      setIsSearchOpen(false);
+    }
   };
 
   // Handle keyboard shortcut for search
-  React.useEffect(() => {
+  useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
@@ -103,13 +143,22 @@ const Index = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Handle URL hash on initial load
-  React.useEffect(() => {
-    const hash = window.location.hash.replace("#", "");
-    if (hash) {
+  // Focus search input when dialog opens
+  useEffect(() => {
+    if (isSearchOpen && searchInputRef.current) {
+      setTimeout(() => {
+        searchInputRef.current.focus();
+      }, 100);
+    }
+  }, [isSearchOpen]);
+
+  // Handle URL path on initial load
+  useEffect(() => {
+    const path = window.location.pathname.replace(/^\//, ""); // Remove leading slash
+    if (path) {
       // Find the item with the matching ID
       for (const section of sections) {
-        const item = section.items.find(item => item.id === hash);
+        const item = section.items.find(item => item.id === path);
         if (item) {
           setActiveSection(section);
           setActiveItem(item);
@@ -325,9 +374,11 @@ npm run dev`}
           </DialogHeader>
           <div className="py-4">
             <Input
+              ref={searchInputRef}
               placeholder="Search for topics, guides, and more..."
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
               className="mb-4"
               autoFocus
             />
@@ -337,7 +388,7 @@ npm run dev`}
                 {searchResults.map((result, index) => (
                   <div 
                     key={index} 
-                    className="p-2 hover:bg-gray-100 rounded-md cursor-pointer"
+                    className={`p-2 rounded-md cursor-pointer ${index === selectedResultIndex ? 'bg-gray-200' : 'hover:bg-gray-100'}`}
                     onClick={() => {
                       // Find the section
                       const section = sections.find(s => s.title === result.section);
@@ -360,6 +411,17 @@ npm run dev`}
             ) : (
               <div className="text-center py-8 text-gray-500">
                 Type to start searching...
+                <div className="mt-2 text-xs text-gray-400">
+                  <div className="flex items-center justify-center gap-2 mb-1">
+                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded-md">↑</kbd>
+                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded-md">↓</kbd>
+                    <span>to navigate</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2">
+                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded-md">Enter</kbd>
+                    <span>to select</span>
+                  </div>
+                </div>
               </div>
             )}
           </div>
