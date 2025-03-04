@@ -1,43 +1,45 @@
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset } from "@/components/ui/sidebar";
-import { Search } from "lucide-react";
+import { Search, Command } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import DocHeader from "@/components/DocHeader";
 import DocContent, { DocHeading, DocParagraph, DocAlert, DocCode, DocCard } from "@/components/DocContent";
+import { Link } from "react-router-dom";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 // Documentation sections
 const sections = [
   {
     title: "Getting Started",
     items: [
-      { title: "Introduction", content: "Welcome to our documentation! This guide will help you get started with our platform." },
-      { title: "Quick Start", content: "Follow these steps to quickly set up your first project." },
-      { title: "Installation", content: "Learn how to install our software on different platforms." }
+      { title: "Introduction", id: "introduction", content: "Welcome to our documentation! This guide will help you get started with our platform." },
+      { title: "Quick Start", id: "quick-start", content: "Follow these steps to quickly set up your first project." },
+      { title: "Installation", id: "installation", content: "Learn how to install our software on different platforms." }
     ]
   },
   {
     title: "Core Concepts",
     items: [
-      { title: "Architecture", content: "Understand the architecture behind our platform." },
-      { title: "Data Model", content: "Learn about our data model and how it's structured." },
-      { title: "Authentication", content: "Implement authentication in your applications." }
+      { title: "Architecture", id: "architecture", content: "Understand the architecture behind our platform." },
+      { title: "Data Model", id: "data-model", content: "Learn about our data model and how it's structured." },
+      { title: "Authentication", id: "authentication", content: "Implement authentication in your applications." }
     ]
   },
   {
     title: "Guides",
     items: [
-      { title: "User Management", content: "Learn how to manage users in your application." },
-      { title: "API Integration", content: "Integrate with our API for extended functionality." },
-      { title: "Deployment", content: "Deploy your application to production environments." }
+      { title: "User Management", id: "user-management", content: "Learn how to manage users in your application." },
+      { title: "API Integration", id: "api-integration", content: "Integrate with our API for extended functionality." },
+      { title: "Deployment", id: "deployment", content: "Deploy your application to production environments." }
     ]
   },
   {
     title: "API Reference",
     items: [
-      { title: "Endpoints", content: "Explore all available API endpoints." },
-      { title: "Parameters", content: "Learn about the parameters for each endpoint." },
-      { title: "Responses", content: "Understand the structure of API responses." }
+      { title: "Endpoints", id: "endpoints", content: "Explore all available API endpoints." },
+      { title: "Parameters", id: "parameters", content: "Learn about the parameters for each endpoint." },
+      { title: "Responses", id: "responses", content: "Understand the structure of API responses." }
     ]
   }
 ];
@@ -46,6 +48,8 @@ const Index = () => {
   const [activeSection, setActiveSection] = useState(sections[0]);
   const [activeItem, setActiveItem] = useState(sections[0].items[0]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
 
   const handleSectionClick = (section) => {
     setActiveSection(section);
@@ -54,7 +58,66 @@ const Index = () => {
 
   const handleItemClick = (item) => {
     setActiveItem(item);
+    // Update URL with the item ID
+    window.history.pushState({}, "", `/#${item.id}`);
   };
+
+  // Handle search functionality
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    
+    if (query.trim() === "") {
+      setSearchResults([]);
+      return;
+    }
+    
+    // Search through all sections and items
+    const results = [];
+    sections.forEach(section => {
+      section.items.forEach(item => {
+        if (
+          item.title.toLowerCase().includes(query.toLowerCase()) ||
+          item.content.toLowerCase().includes(query.toLowerCase())
+        ) {
+          results.push({
+            section: section.title,
+            item
+          });
+        }
+      });
+    });
+    
+    setSearchResults(results);
+  };
+
+  // Handle keyboard shortcut for search
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setIsSearchOpen(true);
+      }
+    };
+    
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // Handle URL hash on initial load
+  useEffect(() => {
+    const hash = window.location.hash.replace("#", "");
+    if (hash) {
+      // Find the item with the matching ID
+      for (const section of sections) {
+        const item = section.items.find(item => item.id === hash);
+        if (item) {
+          setActiveSection(section);
+          setActiveItem(item);
+          break;
+        }
+      }
+    }
+  }, []);
 
   return (
     <SidebarProvider defaultOpen={true}>
@@ -75,19 +138,23 @@ const Index = () => {
                 placeholder="Search documentation..."
                 className="pl-8"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => handleSearch(e.target.value)}
+                onClick={() => setIsSearchOpen(true)}
               />
+              <div className="absolute right-3 top-2 text-xs text-gray-500">
+                <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded-md">⌘K</kbd>
+              </div>
             </div>
           </SidebarHeader>
-          <SidebarContent>
+          <SidebarContent className="px-2">
             {sections.map((section) => (
               <div key={section.title} className="mb-4">
                 <h3 className="px-4 text-sm font-medium text-gray-500 mb-1">{section.title}</h3>
                 <SidebarMenu>
                   {section.items.map((item) => (
-                    <SidebarMenuItem key={item.title}>
+                    <SidebarMenuItem key={item.id}>
                       <SidebarMenuButton
-                        isActive={activeItem.title === item.title}
+                        isActive={activeItem.id === item.id}
                         onClick={() => {
                           handleSectionClick(section);
                           handleItemClick(item);
@@ -108,10 +175,10 @@ const Index = () => {
           
           <main className="flex-1 overflow-auto p-4 sm:p-6">
             <DocContent>
-              <DocHeading level={1}>{activeItem.title}</DocHeading>
+              <DocHeading level={1} id={activeItem.id}>{activeItem.title}</DocHeading>
               <DocParagraph>{activeItem.content}</DocParagraph>
               
-              {activeItem.title === "Introduction" && (
+              {activeItem.id === "introduction" && (
                 <>
                   <DocAlert type="info">
                     This documentation will help you understand how to use our platform effectively.
@@ -199,7 +266,7 @@ getUsers();`}
                 </>
               )}
               
-              {activeItem.title === "Quick Start" && (
+              {activeItem.id === "quick-start" && (
                 <>
                   <DocAlert type="success">
                     Follow this quick start guide to get up and running in minutes!
@@ -246,6 +313,58 @@ npm run dev`}
           </main>
         </SidebarInset>
       </div>
+
+      {/* Command+K Search Dialog */}
+      <Dialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
+        <DialogContent className="sm:max-w-[550px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Command className="h-5 w-5" />
+              Search Documentation
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              placeholder="Search for topics, guides, and more..."
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="mb-4"
+              autoFocus
+            />
+            
+            {searchResults.length > 0 ? (
+              <div className="max-h-[300px] overflow-y-auto">
+                {searchResults.map((result, index) => (
+                  <div 
+                    key={index} 
+                    className="p-2 hover:bg-gray-100 rounded-md cursor-pointer"
+                    onClick={() => {
+                      // Find the section
+                      const section = sections.find(s => s.title === result.section);
+                      if (section) {
+                        handleSectionClick(section);
+                        handleItemClick(result.item);
+                        setIsSearchOpen(false);
+                      }
+                    }}
+                  >
+                    <div className="font-medium">{result.item.title}</div>
+                    <div className="text-sm text-gray-500">{result.section}</div>
+                  </div>
+                ))}
+              </div>
+            ) : searchQuery.trim() !== "" ? (
+              <div className="text-center py-8 text-gray-500">
+                No results found for "{searchQuery}"
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                Type to start searching...
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 };
