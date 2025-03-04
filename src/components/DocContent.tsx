@@ -7,7 +7,6 @@ import CodeBlock from "./CodeBlock";
 
 interface DocContentProps {
   children: React.ReactNode;
-  fullWidth?: boolean;
 }
 
 interface DocHeadingProps {
@@ -112,9 +111,9 @@ export const DocCard: React.FC<DocContentProps> = ({ children }) => {
   );
 };
 
-const DocContent: React.FC<DocContentProps> = ({ children, fullWidth = true }) => {
+const DocContent: React.FC<DocContentProps> = ({ children }) => {
   return (
-    <div className={fullWidth ? "w-full py-6" : "max-w-3xl mx-auto py-6"}>
+    <div className="max-w-3xl mx-auto py-6">
       {children}
     </div>
   );
