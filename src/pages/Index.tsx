@@ -1,10 +1,10 @@
 
 import { useState } from "react";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import DocHeader from "@/components/DocHeader";
+import DocContent, { DocHeading, DocParagraph, DocAlert, DocCode, DocCard } from "@/components/DocContent";
 
 // Documentation sections
 const sections = [
@@ -41,59 +41,6 @@ const sections = [
     ]
   }
 ];
-
-const DocsContent = ({ section, item }) => {
-  return (
-    <div className="max-w-3xl mx-auto py-6">
-      <h1 className="text-3xl font-bold mb-6">{item.title}</h1>
-      <div className="prose prose-slate max-w-none">
-        <p className="text-lg text-gray-700 mb-4">{item.content}</p>
-        
-        {/* Example content - would be replaced with real documentation */}
-        <h2 className="text-2xl font-semibold mt-8 mb-4">Overview</h2>
-        <p>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-          Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-        </p>
-        
-        <h2 className="text-2xl font-semibold mt-8 mb-4">Examples</h2>
-        <p>
-          Here are some examples of how to use this feature:
-        </p>
-        
-        <div className="bg-gray-100 p-4 rounded-md my-4 font-mono text-sm">
-          <pre>{`// Example code
-function example() {
-  return "Hello World";
-}`}</pre>
-        </div>
-        
-        <h2 className="text-2xl font-semibold mt-8 mb-4">Parameters</h2>
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border border-gray-300 px-4 py-2 text-left">Name</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Type</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Description</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td className="border border-gray-300 px-4 py-2">param1</td>
-              <td className="border border-gray-300 px-4 py-2">string</td>
-              <td className="border border-gray-300 px-4 py-2">The first parameter</td>
-            </tr>
-            <tr>
-              <td className="border border-gray-300 px-4 py-2">param2</td>
-              <td className="border border-gray-300 px-4 py-2">number</td>
-              <td className="border border-gray-300 px-4 py-2">The second parameter</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-};
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState(sections[0]);
@@ -157,24 +104,145 @@ const Index = () => {
         </Sidebar>
 
         <SidebarInset>
-          <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6">
-            <Tabs defaultValue="docs" className="w-full">
-              <div className="flex items-center justify-between">
-                <TabsList>
-                  <TabsTrigger value="docs">Documentation</TabsTrigger>
-                  <TabsTrigger value="api">API</TabsTrigger>
-                  <TabsTrigger value="examples">Examples</TabsTrigger>
-                </TabsList>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">Feedback</Button>
-                  <Button size="sm">Get Started</Button>
-                </div>
-              </div>
-            </Tabs>
-          </header>
+          <DocHeader activeTab="docs" />
           
           <main className="flex-1 overflow-auto p-4 sm:p-6">
-            <DocsContent section={activeSection} item={activeItem} />
+            <DocContent>
+              <DocHeading level={1}>{activeItem.title}</DocHeading>
+              <DocParagraph>{activeItem.content}</DocParagraph>
+              
+              {activeItem.title === "Introduction" && (
+                <>
+                  <DocAlert type="info">
+                    This documentation will help you understand how to use our platform effectively.
+                  </DocAlert>
+                  
+                  <DocHeading level={2} id="what-is-it">What is our platform?</DocHeading>
+                  <DocParagraph>
+                    Our platform is a comprehensive solution for building modern applications.
+                    It provides tools and services to help developers create, deploy, and manage
+                    applications with ease.
+                  </DocParagraph>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-8">
+                    <DocCard>
+                      <DocHeading level={3}>Easy to use</DocHeading>
+                      <DocParagraph>
+                        Our intuitive interface makes it simple to get started and build your first application.
+                      </DocParagraph>
+                    </DocCard>
+                    
+                    <DocCard>
+                      <DocHeading level={3}>Powerful features</DocHeading>
+                      <DocParagraph>
+                        Access advanced capabilities through our comprehensive API and integrations.
+                      </DocParagraph>
+                    </DocCard>
+                    
+                    <DocCard>
+                      <DocHeading level={3}>Scalable</DocHeading>
+                      <DocParagraph>
+                        Built to grow with your needs, from small projects to enterprise applications.
+                      </DocParagraph>
+                    </DocCard>
+                    
+                    <DocCard>
+                      <DocHeading level={3}>Secure</DocHeading>
+                      <DocParagraph>
+                        Enterprise-grade security to protect your data and applications.
+                      </DocParagraph>
+                    </DocCard>
+                  </div>
+                  
+                  <DocHeading level={2} id="getting-started">Getting Started</DocHeading>
+                  <DocParagraph>
+                    To get started with our platform, you'll need to:
+                  </DocParagraph>
+                  
+                  <ol className="list-decimal pl-6 mb-6 space-y-2 text-gray-700">
+                    <li>Create an account on our platform</li>
+                    <li>Set up your first project</li>
+                    <li>Install the necessary dependencies</li>
+                    <li>Start building your application</li>
+                  </ol>
+                  
+                  <DocHeading level={2} id="installation">Installation</DocHeading>
+                  <DocParagraph>
+                    You can install our SDK using npm or yarn:
+                  </DocParagraph>
+                  
+                  <DocCode code="npm install @platform/sdk" language="bash" />
+                  <DocCode code="yarn add @platform/sdk" language="bash" />
+                  
+                  <DocHeading level={2} id="usage">Basic Usage</DocHeading>
+                  <DocParagraph>
+                    Here's a simple example of how to use our SDK:
+                  </DocParagraph>
+                  
+                  <DocCode 
+                    code={`import { Client } from '@platform/sdk';
+
+// Initialize the client
+const client = new Client({
+  apiKey: 'your-api-key'
+});
+
+// Use the client to interact with our API
+async function getUsers() {
+  const users = await client.users.list();
+  console.log(users);
+}
+
+getUsers();`} 
+                    language="javascript" 
+                  />
+                </>
+              )}
+              
+              {activeItem.title === "Quick Start" && (
+                <>
+                  <DocAlert type="success">
+                    Follow this quick start guide to get up and running in minutes!
+                  </DocAlert>
+                  
+                  <DocHeading level={2} id="prerequisites">Prerequisites</DocHeading>
+                  <DocParagraph>
+                    Before you begin, make sure you have the following installed:
+                  </DocParagraph>
+                  
+                  <ul className="list-disc pl-6 mb-6 space-y-2 text-gray-700">
+                    <li>Node.js (version 14 or higher)</li>
+                    <li>npm or yarn</li>
+                    <li>A code editor of your choice</li>
+                  </ul>
+                  
+                  <DocHeading level={2} id="create-project">Create a new project</DocHeading>
+                  <DocParagraph>
+                    Run the following command to create a new project:
+                  </DocParagraph>
+                  
+                  <DocCode 
+                    code="npx create-platform-app my-awesome-app" 
+                    language="bash" 
+                  />
+                  
+                  <DocHeading level={2} id="start-dev">Start the development server</DocHeading>
+                  <DocParagraph>
+                    Navigate to your project directory and start the development server:
+                  </DocParagraph>
+                  
+                  <DocCode 
+                    code={`cd my-awesome-app
+npm run dev`} 
+                    language="bash" 
+                  />
+                  
+                  <DocParagraph>
+                    Your application should now be running at <code className="bg-gray-100 px-1 py-0.5 rounded">http://localhost:3000</code>.
+                  </DocParagraph>
+                </>
+              )}
+            </DocContent>
           </main>
         </SidebarInset>
       </div>
