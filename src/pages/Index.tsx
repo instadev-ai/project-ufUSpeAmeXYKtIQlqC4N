@@ -222,81 +222,82 @@ const Index = () => {
         <SidebarInset>
           <DocHeader activeTab="docs" />
           
-          <main className="flex-1 overflow-auto p-4 sm:p-6">
+          <main className="flex-1 overflow-auto p-6 sm:p-10">
             <DocContent>
-              <DocHeading level={1} id={activeItem.id}>{activeItem.title}</DocHeading>
-              <DocParagraph>{activeItem.content}</DocParagraph>
-              
-              {activeItem.id === "introduction" && (
-                <>
-                  <DocAlert type="info">
-                    This documentation will help you understand how to use our platform effectively.
-                  </DocAlert>
-                  
-                  <DocHeading level={2} id="what-is-it">What is our platform?</DocHeading>
-                  <DocParagraph>
-                    Our platform is a comprehensive solution for building modern applications.
-                    It provides tools and services to help developers create, deploy, and manage
-                    applications with ease.
-                  </DocParagraph>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-8">
-                    <DocCard>
-                      <DocHeading level={3}>Easy to use</DocHeading>
-                      <DocParagraph>
-                        Our intuitive interface makes it simple to get started and build your first application.
-                      </DocParagraph>
-                    </DocCard>
+              <div className="max-w-5xl mx-auto">
+                <DocHeading level={1} id={activeItem.id}>{activeItem.title}</DocHeading>
+                <DocParagraph>{activeItem.content}</DocParagraph>
+                
+                {activeItem.id === "introduction" && (
+                  <>
+                    <DocAlert type="info">
+                      This documentation will help you understand how to use our platform effectively.
+                    </DocAlert>
                     
-                    <DocCard>
-                      <DocHeading level={3}>Powerful features</DocHeading>
-                      <DocParagraph>
-                        Access advanced capabilities through our comprehensive API and integrations.
-                      </DocParagraph>
-                    </DocCard>
+                    <DocHeading level={2} id="what-is-it">What is our platform?</DocHeading>
+                    <DocParagraph>
+                      Our platform is a comprehensive solution for building modern applications.
+                      It provides tools and services to help developers create, deploy, and manage
+                      applications with ease.
+                    </DocParagraph>
                     
-                    <DocCard>
-                      <DocHeading level={3}>Scalable</DocHeading>
-                      <DocParagraph>
-                        Built to grow with your needs, from small projects to enterprise applications.
-                      </DocParagraph>
-                    </DocCard>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-8">
+                      <DocCard>
+                        <DocHeading level={3}>Easy to use</DocHeading>
+                        <DocParagraph>
+                          Our intuitive interface makes it simple to get started and build your first application.
+                        </DocParagraph>
+                      </DocCard>
+                      
+                      <DocCard>
+                        <DocHeading level={3}>Powerful features</DocHeading>
+                        <DocParagraph>
+                          Access advanced capabilities through our comprehensive API and integrations.
+                        </DocParagraph>
+                      </DocCard>
+                      
+                      <DocCard>
+                        <DocHeading level={3}>Scalable</DocHeading>
+                        <DocParagraph>
+                          Built to grow with your needs, from small projects to enterprise applications.
+                        </DocParagraph>
+                      </DocCard>
+                      
+                      <DocCard>
+                        <DocHeading level={3}>Secure</DocHeading>
+                        <DocParagraph>
+                          Enterprise-grade security to protect your data and applications.
+                        </DocParagraph>
+                      </DocCard>
+                    </div>
                     
-                    <DocCard>
-                      <DocHeading level={3}>Secure</DocHeading>
-                      <DocParagraph>
-                        Enterprise-grade security to protect your data and applications.
-                      </DocParagraph>
-                    </DocCard>
-                  </div>
-                  
-                  <DocHeading level={2} id="getting-started">Getting Started</DocHeading>
-                  <DocParagraph>
-                    To get started with our platform, you'll need to:
-                  </DocParagraph>
-                  
-                  <ol className="list-decimal pl-6 mb-6 space-y-2 text-gray-700">
-                    <li>Create an account on our platform</li>
-                    <li>Set up your first project</li>
-                    <li>Install the necessary dependencies</li>
-                    <li>Start building your application</li>
-                  </ol>
-                  
-                  <DocHeading level={2} id="installation">Installation</DocHeading>
-                  <DocParagraph>
-                    You can install our SDK using npm or yarn:
-                  </DocParagraph>
-                  
-                  <DocCode code="npm install @platform/sdk" language="bash" />
-                  <DocCode code="yarn add @platform/sdk" language="bash" />
-                  
-                  <DocHeading level={2} id="usage">Basic Usage</DocHeading>
-                  <DocParagraph>
-                    Here's a simple example of how to use our SDK:
-                  </DocParagraph>
-                  
-                  <DocCode 
-                    code={`import { Client } from '@platform/sdk';
+                    <DocHeading level={2} id="getting-started">Getting Started</DocHeading>
+                    <DocParagraph>
+                      To get started with our platform, you'll need to:
+                    </DocParagraph>
+                    
+                    <ol className="list-decimal pl-6 mb-6 space-y-2 text-gray-700">
+                      <li>Create an account on our platform</li>
+                      <li>Set up your first project</li>
+                      <li>Install the necessary dependencies</li>
+                      <li>Start building your application</li>
+                    </ol>
+                    
+                    <DocHeading level={2} id="installation">Installation</DocHeading>
+                    <DocParagraph>
+                      You can install our SDK using npm or yarn:
+                    </DocParagraph>
+                    
+                    <DocCode code="npm install @platform/sdk" language="bash" />
+                    <DocCode code="yarn add @platform/sdk" language="bash" />
+                    
+                    <DocHeading level={2} id="usage">Basic Usage</DocHeading>
+                    <DocParagraph>
+                      Here's a simple example of how to use our SDK:
+                    </DocParagraph>
+                    
+                    <DocCode 
+                      code={`import { Client } from '@platform/sdk';
 
 // Initialize the client
 const client = new Client({
@@ -310,54 +311,55 @@ async function getUsers() {
 }
 
 getUsers();`} 
-                    language="javascript" 
-                  />
-                </>
-              )}
-              
-              {activeItem.id === "quick-start" && (
-                <>
-                  <DocAlert type="success">
-                    Follow this quick start guide to get up and running in minutes!
-                  </DocAlert>
-                  
-                  <DocHeading level={2} id="prerequisites">Prerequisites</DocHeading>
-                  <DocParagraph>
-                    Before you begin, make sure you have the following installed:
-                  </DocParagraph>
-                  
-                  <ul className="list-disc pl-6 mb-6 space-y-2 text-gray-700">
-                    <li>Node.js (version 14 or higher)</li>
-                    <li>npm or yarn</li>
-                    <li>A code editor of your choice</li>
-                  </ul>
-                  
-                  <DocHeading level={2} id="create-project">Create a new project</DocHeading>
-                  <DocParagraph>
-                    Run the following command to create a new project:
-                  </DocParagraph>
-                  
-                  <DocCode 
-                    code="npx create-platform-app my-awesome-app" 
-                    language="bash" 
-                  />
-                  
-                  <DocHeading level={2} id="start-dev">Start the development server</DocHeading>
-                  <DocParagraph>
-                    Navigate to your project directory and start the development server:
-                  </DocParagraph>
-                  
-                  <DocCode 
-                    code={`cd my-awesome-app
+                      language="javascript" 
+                    />
+                  </>
+                )}
+                
+                {activeItem.id === "quick-start" && (
+                  <>
+                    <DocAlert type="success">
+                      Follow this quick start guide to get up and running in minutes!
+                    </DocAlert>
+                    
+                    <DocHeading level={2} id="prerequisites">Prerequisites</DocHeading>
+                    <DocParagraph>
+                      Before you begin, make sure you have the following installed:
+                    </DocParagraph>
+                    
+                    <ul className="list-disc pl-6 mb-6 space-y-2 text-gray-700">
+                      <li>Node.js (version 14 or higher)</li>
+                      <li>npm or yarn</li>
+                      <li>A code editor of your choice</li>
+                    </ul>
+                    
+                    <DocHeading level={2} id="create-project">Create a new project</DocHeading>
+                    <DocParagraph>
+                      Run the following command to create a new project:
+                    </DocParagraph>
+                    
+                    <DocCode 
+                      code="npx create-platform-app my-awesome-app" 
+                      language="bash" 
+                    />
+                    
+                    <DocHeading level={2} id="start-dev">Start the development server</DocHeading>
+                    <DocParagraph>
+                      Navigate to your project directory and start the development server:
+                    </DocParagraph>
+                    
+                    <DocCode 
+                      code={`cd my-awesome-app
 npm run dev`} 
-                    language="bash" 
-                  />
-                  
-                  <DocParagraph>
-                    Your application should now be running at <code className="bg-gray-100 px-1 py-0.5 rounded">http://localhost:3000</code>.
-                  </DocParagraph>
-                </>
-              )}
+                      language="bash" 
+                    />
+                    
+                    <DocParagraph>
+                      Your application should now be running at <code className="bg-gray-100 px-1 py-0.5 rounded">http://localhost:3000</code>.
+                    </DocParagraph>
+                  </>
+                )}
+              </div>
             </DocContent>
           </main>
         </SidebarInset>
