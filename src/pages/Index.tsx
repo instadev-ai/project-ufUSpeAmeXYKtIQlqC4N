@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset } from "@/components/ui/sidebar";
 import { Search, Command } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -50,6 +50,8 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
+  const [selectedResultIndex, setSelectedResultIndex] = useState(0);
+  const searchInputRef = useRef(null);
 
   const handleSectionClick = (section) => {
     setActiveSection(section);
@@ -58,8 +60,8 @@ const Index = () => {
 
   const handleItemClick = (item) => {
     setActiveItem(item);
-    // Update URL with the item ID
-    window.history.pushState({}, "", `/#${item.id}`);
+    // Update URL with the item ID (without hash)
+    window.history.pushState({}, "", `/${item.id}`);
   };
 
   // Handle search functionality
@@ -68,6 +70,7 @@ const Index = () => {
     
     if (query.trim() === "") {
       setSearchResults([]);
+      setSelectedResultIndex(0);
       return;
     }
     
@@ -88,6 +91,43 @@ const Index = () => {
     });
     
     setSearchResults(results);
+    setSelectedResultIndex(0); // Reset selection when results change
+  };
+
+  // Handle keyboard navigation in search results
+  const handleSearchKeyDown = (e) => {
+    if (searchResults.length === 0) return;
+
+    // Arrow down
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedResultIndex(prev => 
+        prev < searchResults.length - 1 ? prev + 1 : prev
+      );
+    }
+    
+    // Arrow up
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedResultIndex(prev => prev > 0 ? prev - 1 : 0);
+    }
+    
+    // Enter key - select the highlighted result
+    if (e.key === 'Enter' && selectedResultIndex >= 0 && selectedResultIndex < searchResults.length) {
+      e.preventDefault();
+      const result = searchResults[selectedResultIndex];
+      const section = sections.find(s => s.title === result.section);
+      if (section) {
+        handleSectionClick(section);
+        handleItemClick(result.item);
+        setIsSearchOpen(false);
+      }
+    }
+    
+    // Escape key - close the search dialog
+    if (e.key === 'Escape') {
+      setIsSearchOpen(false);
+    }
   };
 
   // Handle keyboard shortcut for search
@@ -103,13 +143,22 @@ const Index = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Handle URL hash on initial load
+  // Focus search input when dialog opens
   useEffect(() => {
-    const hash = window.location.hash.replace("#", "");
-    if (hash) {
+    if (isSearchOpen && searchInputRef.current) {
+      setTimeout(() => {
+        searchInputRef.current.focus();
+      }, 100);
+    }
+  }, [isSearchOpen]);
+
+  // Handle URL path on initial load
+  useEffect(() => {
+    const path = window.location.pathname.replace(/^\//, ""); // Remove leading slash
+    if (path) {
       // Find the item with the matching ID
       for (const section of sections) {
-        const item = section.items.find(item => item.id === hash);
+        const item = section.items.find(item => item.id === path);
         if (item) {
           setActiveSection(section);
           setActiveItem(item);
@@ -173,81 +222,82 @@ const Index = () => {
         <SidebarInset>
           <DocHeader activeTab="docs" />
           
-          <main className="flex-1 overflow-auto p-4 sm:p-6">
+          <main className="flex-1 overflow-auto p-6 sm:p-10">
             <DocContent>
-              <DocHeading level={1} id={activeItem.id}>{activeItem.title}</DocHeading>
-              <DocParagraph>{activeItem.content}</DocParagraph>
-              
-              {activeItem.id === "introduction" && (
-                <>
-                  <DocAlert type="info">
-                    This documentation will help you understand how to use our platform effectively.
-                  </DocAlert>
-                  
-                  <DocHeading level={2} id="what-is-it">What is our platform?</DocHeading>
-                  <DocParagraph>
-                    Our platform is a comprehensive solution for building modern applications.
-                    It provides tools and services to help developers create, deploy, and manage
-                    applications with ease.
-                  </DocParagraph>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-8">
-                    <DocCard>
-                      <DocHeading level={3}>Easy to use</DocHeading>
-                      <DocParagraph>
-                        Our intuitive interface makes it simple to get started and build your first application.
-                      </DocParagraph>
-                    </DocCard>
+              <div className="max-w-5xl mx-auto">
+                <DocHeading level={1} id={activeItem.id}>{activeItem.title}</DocHeading>
+                <DocParagraph>{activeItem.content}</DocParagraph>
+                
+                {activeItem.id === "introduction" && (
+                  <>
+                    <DocAlert type="info">
+                      This documentation will help you understand how to use our platform effectively.
+                    </DocAlert>
                     
-                    <DocCard>
-                      <DocHeading level={3}>Powerful features</DocHeading>
-                      <DocParagraph>
-                        Access advanced capabilities through our comprehensive API and integrations.
-                      </DocParagraph>
-                    </DocCard>
+                    <DocHeading level={2} id="what-is-it">What is our platform?</DocHeading>
+                    <DocParagraph>
+                      Our platform is a comprehensive solution for building modern applications.
+                      It provides tools and services to help developers create, deploy, and manage
+                      applications with ease.
+                    </DocParagraph>
                     
-                    <DocCard>
-                      <DocHeading level={3}>Scalable</DocHeading>
-                      <DocParagraph>
-                        Built to grow with your needs, from small projects to enterprise applications.
-                      </DocParagraph>
-                    </DocCard>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-8">
+                      <DocCard>
+                        <DocHeading level={3}>Easy to use</DocHeading>
+                        <DocParagraph>
+                          Our intuitive interface makes it simple to get started and build your first application.
+                        </DocParagraph>
+                      </DocCard>
+                      
+                      <DocCard>
+                        <DocHeading level={3}>Powerful features</DocHeading>
+                        <DocParagraph>
+                          Access advanced capabilities through our comprehensive API and integrations.
+                        </DocParagraph>
+                      </DocCard>
+                      
+                      <DocCard>
+                        <DocHeading level={3}>Scalable</DocHeading>
+                        <DocParagraph>
+                          Built to grow with your needs, from small projects to enterprise applications.
+                        </DocParagraph>
+                      </DocCard>
+                      
+                      <DocCard>
+                        <DocHeading level={3}>Secure</DocHeading>
+                        <DocParagraph>
+                          Enterprise-grade security to protect your data and applications.
+                        </DocParagraph>
+                      </DocCard>
+                    </div>
                     
-                    <DocCard>
-                      <DocHeading level={3}>Secure</DocHeading>
-                      <DocParagraph>
-                        Enterprise-grade security to protect your data and applications.
-                      </DocParagraph>
-                    </DocCard>
-                  </div>
-                  
-                  <DocHeading level={2} id="getting-started">Getting Started</DocHeading>
-                  <DocParagraph>
-                    To get started with our platform, you'll need to:
-                  </DocParagraph>
-                  
-                  <ol className="list-decimal pl-6 mb-6 space-y-2 text-gray-700">
-                    <li>Create an account on our platform</li>
-                    <li>Set up your first project</li>
-                    <li>Install the necessary dependencies</li>
-                    <li>Start building your application</li>
-                  </ol>
-                  
-                  <DocHeading level={2} id="installation">Installation</DocHeading>
-                  <DocParagraph>
-                    You can install our SDK using npm or yarn:
-                  </DocParagraph>
-                  
-                  <DocCode code="npm install @platform/sdk" language="bash" />
-                  <DocCode code="yarn add @platform/sdk" language="bash" />
-                  
-                  <DocHeading level={2} id="usage">Basic Usage</DocHeading>
-                  <DocParagraph>
-                    Here's a simple example of how to use our SDK:
-                  </DocParagraph>
-                  
-                  <DocCode 
-                    code={`import { Client } from '@platform/sdk';
+                    <DocHeading level={2} id="getting-started">Getting Started</DocHeading>
+                    <DocParagraph>
+                      To get started with our platform, you'll need to:
+                    </DocParagraph>
+                    
+                    <ol className="list-decimal pl-6 mb-6 space-y-2 text-gray-700">
+                      <li>Create an account on our platform</li>
+                      <li>Set up your first project</li>
+                      <li>Install the necessary dependencies</li>
+                      <li>Start building your application</li>
+                    </ol>
+                    
+                    <DocHeading level={2} id="installation">Installation</DocHeading>
+                    <DocParagraph>
+                      You can install our SDK using npm or yarn:
+                    </DocParagraph>
+                    
+                    <DocCode code="npm install @platform/sdk" language="bash" />
+                    <DocCode code="yarn add @platform/sdk" language="bash" />
+                    
+                    <DocHeading level={2} id="usage">Basic Usage</DocHeading>
+                    <DocParagraph>
+                      Here's a simple example of how to use our SDK:
+                    </DocParagraph>
+                    
+                    <DocCode 
+                      code={`import { Client } from '@platform/sdk';
 
 // Initialize the client
 const client = new Client({
@@ -261,54 +311,55 @@ async function getUsers() {
 }
 
 getUsers();`} 
-                    language="javascript" 
-                  />
-                </>
-              )}
-              
-              {activeItem.id === "quick-start" && (
-                <>
-                  <DocAlert type="success">
-                    Follow this quick start guide to get up and running in minutes!
-                  </DocAlert>
-                  
-                  <DocHeading level={2} id="prerequisites">Prerequisites</DocHeading>
-                  <DocParagraph>
-                    Before you begin, make sure you have the following installed:
-                  </DocParagraph>
-                  
-                  <ul className="list-disc pl-6 mb-6 space-y-2 text-gray-700">
-                    <li>Node.js (version 14 or higher)</li>
-                    <li>npm or yarn</li>
-                    <li>A code editor of your choice</li>
-                  </ul>
-                  
-                  <DocHeading level={2} id="create-project">Create a new project</DocHeading>
-                  <DocParagraph>
-                    Run the following command to create a new project:
-                  </DocParagraph>
-                  
-                  <DocCode 
-                    code="npx create-platform-app my-awesome-app" 
-                    language="bash" 
-                  />
-                  
-                  <DocHeading level={2} id="start-dev">Start the development server</DocHeading>
-                  <DocParagraph>
-                    Navigate to your project directory and start the development server:
-                  </DocParagraph>
-                  
-                  <DocCode 
-                    code={`cd my-awesome-app
+                      language="javascript" 
+                    />
+                  </>
+                )}
+                
+                {activeItem.id === "quick-start" && (
+                  <>
+                    <DocAlert type="success">
+                      Follow this quick start guide to get up and running in minutes!
+                    </DocAlert>
+                    
+                    <DocHeading level={2} id="prerequisites">Prerequisites</DocHeading>
+                    <DocParagraph>
+                      Before you begin, make sure you have the following installed:
+                    </DocParagraph>
+                    
+                    <ul className="list-disc pl-6 mb-6 space-y-2 text-gray-700">
+                      <li>Node.js (version 14 or higher)</li>
+                      <li>npm or yarn</li>
+                      <li>A code editor of your choice</li>
+                    </ul>
+                    
+                    <DocHeading level={2} id="create-project">Create a new project</DocHeading>
+                    <DocParagraph>
+                      Run the following command to create a new project:
+                    </DocParagraph>
+                    
+                    <DocCode 
+                      code="npx create-platform-app my-awesome-app" 
+                      language="bash" 
+                    />
+                    
+                    <DocHeading level={2} id="start-dev">Start the development server</DocHeading>
+                    <DocParagraph>
+                      Navigate to your project directory and start the development server:
+                    </DocParagraph>
+                    
+                    <DocCode 
+                      code={`cd my-awesome-app
 npm run dev`} 
-                    language="bash" 
-                  />
-                  
-                  <DocParagraph>
-                    Your application should now be running at <code className="bg-gray-100 px-1 py-0.5 rounded">http://localhost:3000</code>.
-                  </DocParagraph>
-                </>
-              )}
+                      language="bash" 
+                    />
+                    
+                    <DocParagraph>
+                      Your application should now be running at <code className="bg-gray-100 px-1 py-0.5 rounded">http://localhost:3000</code>.
+                    </DocParagraph>
+                  </>
+                )}
+              </div>
             </DocContent>
           </main>
         </SidebarInset>
@@ -325,9 +376,11 @@ npm run dev`}
           </DialogHeader>
           <div className="py-4">
             <Input
+              ref={searchInputRef}
               placeholder="Search for topics, guides, and more..."
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
               className="mb-4"
               autoFocus
             />
@@ -337,7 +390,7 @@ npm run dev`}
                 {searchResults.map((result, index) => (
                   <div 
                     key={index} 
-                    className="p-2 hover:bg-gray-100 rounded-md cursor-pointer"
+                    className={`p-2 rounded-md cursor-pointer ${index === selectedResultIndex ? 'bg-gray-200' : 'hover:bg-gray-100'}`}
                     onClick={() => {
                       // Find the section
                       const section = sections.find(s => s.title === result.section);
@@ -360,6 +413,17 @@ npm run dev`}
             ) : (
               <div className="text-center py-8 text-gray-500">
                 Type to start searching...
+                <div className="mt-2 text-xs text-gray-400">
+                  <div className="flex items-center justify-center gap-2 mb-1">
+                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded-md">↑</kbd>
+                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded-md">↓</kbd>
+                    <span>to navigate</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2">
+                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded-md">Enter</kbd>
+                    <span>to select</span>
+                  </div>
+                </div>
               </div>
             )}
           </div>
