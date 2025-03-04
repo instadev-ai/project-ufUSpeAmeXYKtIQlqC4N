@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset } from "@/components/ui/sidebar";
 import { Search, Command } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -41,11 +41,13 @@ const ApiDocs = () => {
   const [activeSection, setActiveSection] = useState("overview");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
+  const [selectedResultIndex, setSelectedResultIndex] = useState(0);
+  const searchInputRef = useRef(null);
 
   const scrollToSection = (id) => {
     setActiveSection(id);
-    // Update URL with the section ID
-    window.history.pushState({}, "", `/api#${id}`);
+    // Update URL with the section ID (without hash)
+    window.history.pushState({}, "", `/api/${id}`);
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
@@ -58,6 +60,7 @@ const ApiDocs = () => {
     
     if (query.trim() === "") {
       setSearchResults([]);
+      setSelectedResultIndex(0);
       return;
     }
     
@@ -75,6 +78,39 @@ const ApiDocs = () => {
     });
     
     setSearchResults(results);
+    setSelectedResultIndex(0); // Reset selection when results change
+  };
+
+  // Handle keyboard navigation in search results
+  const handleSearchKeyDown = (e) => {
+    if (searchResults.length === 0) return;
+
+    // Arrow down
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedResultIndex(prev => 
+        prev < searchResults.length - 1 ? prev + 1 : prev
+      );
+    }
+    
+    // Arrow up
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedResultIndex(prev => prev > 0 ? prev - 1 : 0);
+    }
+    
+    // Enter key - select the highlighted result
+    if (e.key === 'Enter' && selectedResultIndex >= 0 && selectedResultIndex < searchResults.length) {
+      e.preventDefault();
+      const result = searchResults[selectedResultIndex];
+      scrollToSection(result.item.id);
+      setIsSearchOpen(false);
+    }
+    
+    // Escape key - close the search dialog
+    if (e.key === 'Escape') {
+      setIsSearchOpen(false);
+    }
   };
 
   // Handle keyboard shortcut for search
@@ -90,13 +126,22 @@ const ApiDocs = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Handle URL hash on initial load
+  // Focus search input when dialog opens
   useEffect(() => {
-    const hash = window.location.hash.replace("#", "");
-    if (hash) {
-      setActiveSection(hash);
+    if (isSearchOpen && searchInputRef.current) {
       setTimeout(() => {
-        const element = document.getElementById(hash);
+        searchInputRef.current.focus();
+      }, 100);
+    }
+  }, [isSearchOpen]);
+
+  // Handle URL path on initial load
+  useEffect(() => {
+    const path = window.location.pathname.replace(/^\/api\//, ""); // Remove leading /api/
+    if (path) {
+      setActiveSection(path);
+      setTimeout(() => {
+        const element = document.getElementById(path);
         if (element) {
           element.scrollIntoView({ behavior: 'smooth' });
         }
@@ -492,9 +537,11 @@ X-RateLimit-Reset: 1619194800`}
           </DialogHeader>
           <div className="py-4">
             <Input
+              ref={searchInputRef}
               placeholder="Search for API endpoints, parameters, and more..."
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
               className="mb-4"
               autoFocus
             />
@@ -504,7 +551,7 @@ X-RateLimit-Reset: 1619194800`}
                 {searchResults.map((result, index) => (
                   <div 
                     key={index} 
-                    className="p-2 hover:bg-gray-100 rounded-md cursor-pointer"
+                    className={`p-2 rounded-md cursor-pointer ${index === selectedResultIndex ? 'bg-gray-200' : 'hover:bg-gray-100'}`}
                     onClick={() => {
                       scrollToSection(result.item.id);
                       setIsSearchOpen(false);
@@ -522,6 +569,17 @@ X-RateLimit-Reset: 1619194800`}
             ) : (
               <div className="text-center py-8 text-gray-500">
                 Type to start searching...
+                <div className="mt-2 text-xs text-gray-400">
+                  <div className="flex items-center justify-center gap-2 mb-1">
+                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded-md">↑</kbd>
+                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded-md">↓</kbd>
+                    <span>to navigate</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2">
+                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded-md">Enter</kbd>
+                    <span>to select</span>
+                  </div>
+                </div>
               </div>
             )}
           </div>
